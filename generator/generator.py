@@ -42,16 +42,6 @@ def is_legal(etat: list[int]) -> bool:
     return True
 
 
-# def collect_all_states() -> list[list[int]]:
-#     """Énumère tous les états légaux du morpion (5 478 au total)."""
-#     states = []
-#     for combo in itertools.product([-1, 0, 1], repeat=9):
-#         state = list(combo)
-#         if is_legal(state):
-#             states.append(state)
-#     return states
-
-
 def collect_all_states() -> list["Node"]:
     initial = Node()
     stack = [initial]
@@ -69,8 +59,10 @@ def collect_all_states() -> list["Node"]:
 
             if child_str not in visited:
                 visited.add(child_str)
-                stack.append(child)
-                result.append(child)
+
+                if is_legal(child.etat):
+                    stack.append(child)
+                    result.append(child)
 
     return result
 
