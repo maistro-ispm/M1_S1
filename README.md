@@ -2,9 +2,7 @@
 
 Examen Machine Learning M1
 
-## Groupe
-
-mAIstro
+Live Demo: https://maistro-ispm.github.io/M1_S1/
 
 ## Membres
 
