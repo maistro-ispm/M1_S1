@@ -9,8 +9,8 @@ const winLineEl = document.querySelector("#win-line");
 const startBtn = document.querySelector("#startGame");
 const menu = document.querySelector(".menu");
 const settingBtn = document.querySelector("#settings");
-const loadingDetailElement = document.querySelector("#loading-detail")
-const loadingElement = document.querySelector("#loader")
+const loadingDetailElement = document.querySelector("#loading-detail");
+const loadingElement = document.querySelector("#loader");
 
 // --- Variables d'état ---
 const X = 1;
@@ -20,8 +20,7 @@ let turn = X;
 let canPlay = false; // Bloqué tant qu'on n'a pas cliqué sur "Commencer"
 let vsAI = false;
 let vsHybrid = false;
-let loading = true
-
+let loading = true;
 
 // --- Fonctions utilitaires ---
 function getChar(p = turn) {
@@ -119,7 +118,6 @@ function play(position) {
   if (vsHybrid && turn === O && canPlay) {
     setTimeout(hybridPlay, 200); // Petit délai pour le réalisme
   }
-
 }
 
 function hybridPlay() {
@@ -139,7 +137,36 @@ function hybridPlay() {
 }
 
 function aiPlay() {
-  initialize();
+  // FIXME: model prediction
+  //
+  // const node = new AlphaBeta([...state]);
+  // const succ = node.getSucc();
+  // const predictions = succ.map((node) => predictXWin(node.getFlatState()));
+  // console.log("predictions: ", predictions);
+  // const filtered = succ.filter(
+  //   (node) => predictXWin(node.getFlatState()) !== X,
+  // );
+  // console.log("filtered: ", filtered);
+  // const first = filtered[0];
+  //
+  // if (!first) {
+  //   throw new Error("???");
+  // }
+  //
+  // const position = node.state
+  //   .map((v, i) => [v, i])
+  //   .find(([v, i]) => v !== state[i]);
+  //
+  // play(position);
+
+  // IA aleatoire
+  const emptyCells = state
+    .map((s, i) => (s === 0 ? i : null))
+    .filter((i) => i !== null);
+  if (emptyCells.length > 0) {
+    const randomPos = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    play(randomPos);
+  }
 }
 
 function displayLoader() {
@@ -164,11 +191,9 @@ startBtn.addEventListener("click", () => {
     document.querySelector('input[name="opponent"]:checked').value === "hybrid";
 
   if (vsAI) {
-    displayLoader()
+    displayLoader();
     initialize();
   }
-
-  console.log("fldakjfds", vsAI, vsHybrid)
 
   reset();
 });
@@ -190,47 +215,53 @@ if (winLineEl) {
 async function initialize() {
   pyodide = await loadPyodide();
 
-  loadingDetailElement.innerHTML = "1/12. Telechargement du model x_wins_model.joblib"
+  loadingDetailElement.innerHTML =
+    "1/12. Telechargement du model x_wins_model.joblib";
 
   const xWinModel = await fetch("./src/x_wins_model.joblib");
 
-  loadingDetailElement.innerHTML = "2/12. Telechargement du model x_draw_model.joblib"
-  const drawModel = await fetch("./src/draw_model.joblib");
+  loadingDetailElement.innerHTML =
+    "2/12. Telechargement du model is_draw_model.joblib";
+  const drawModel = await fetch("./src/is_draw_model.joblib");
 
-  loadingDetailElement.innerHTML = "3/12. Telechargement du model x_wins_model.joblib"
+  loadingDetailElement.innerHTML =
+    "3/12. Telechargement du model x_wins_model.joblib";
   const xWinModelBuffer = await xWinModel.arrayBuffer();
 
-  loadingDetailElement.innerHTML = "4/12. Chargement du model x_draw_model.joblib"
+  loadingDetailElement.innerHTML =
+    "4/12. Chargement du model is_draw_model.joblib";
   const drawModelBuffer = await drawModel.arrayBuffer();
 
-  loadingDetailElement.innerHTML = "5/12. Chargement du model x_draw_model.joblib"
+  loadingDetailElement.innerHTML =
+    "5/12. Chargement du model x_draw_model.joblib";
   pyodide.FS.writeFile("x_wins_model.joblib", new Uint8Array(xWinModelBuffer));
 
-  loadingDetailElement.innerHTML = "6/12. Chargement du model x_draw_model.joblib"
+  loadingDetailElement.innerHTML =
+    "6/12. Chargement du model x_draw_model.joblib";
   pyodide.FS.writeFile("draw_model.joblib", new Uint8Array(drawModelBuffer));
 
-  loadingDetailElement.innerHTML = "7/12. Chargement du package micropip"
+  loadingDetailElement.innerHTML = "7/12. Chargement du package micropip";
   await pyodide.loadPackage("micropip");
 
-  loadingDetailElement.innerHTML = "8/12. Installation du package micropip"
+  loadingDetailElement.innerHTML = "8/12. Installation du package micropip";
   const micropip = pyodide.pyimport("micropip");
 
-  loadingDetailElement.innerHTML = "9/12. Installation du package scikit-learn"
+  loadingDetailElement.innerHTML = "9/12. Installation du package scikit-learn";
   await micropip.install("scikit-learn");
 
-  loadingDetailElement.innerHTML = "10/12. Installation du package joblib"
+  loadingDetailElement.innerHTML = "10/12. Installation du package joblib";
   await micropip.install("joblib");
 
-  loadingDetailElement.innerHTML = "11/12. Installation du package numpy"
+  loadingDetailElement.innerHTML = "11/12. Installation du package numpy";
   await micropip.install("numpy");
 
-  loadingDetailElement.innerHTML = "12/12. Preparation du model"
+  loadingDetailElement.innerHTML = "12/12. Preparation du model";
   await pyodide.runPythonAsync(`
       import joblib
       import numpy as np
 
       x_wins_model = joblib.load("x_wins_model.joblib")
-      draw_model = joblib.load("draw_model.joblib")
+      draw_model = joblib.load("is_draw_model.joblib")
 
       def predict_x_win(input):
         input = np.array(input).reshape(1, -1)
@@ -243,14 +274,13 @@ async function initialize() {
         return prediction.tolist()
   `);
 
-  hideLoader()
+  hideLoader();
 }
 
 function predictXWin(input) {
-  pyodide.globals.get("predict_x_win")(input);
+  pyodide.globals.get("predict_x_win")(input).toJs();
 }
 
 function predictDraw(input) {
-  pyodide.globals.get("predict_draw")(input);
+  pyodide.globals.get("predict_draw")(input).toJs();
 }
-

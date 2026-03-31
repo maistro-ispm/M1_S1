@@ -6,8 +6,8 @@ class AlphaBeta {
   best = null;
   turn = AlphaBeta.X;
 
-  constructor (state) {
-    this.state = state
+  constructor(state) {
+    this.state = state;
   }
 
   getChar() {
@@ -21,12 +21,21 @@ class AlphaBeta {
   // Évaluation : 100 si X gagne, -100 si O gagne
   evalState(player) {
     const lines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6]
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
     ];
     for (let [a, b, c] of lines) {
-      if (this.state[a] !== 0 && this.state[a] === this.state[b] && this.state[a] === this.state[c]) {
+      if (
+        this.state[a] !== 0 &&
+        this.state[a] === this.state[b] &&
+        this.state[a] === this.state[c]
+      ) {
         return this.state[a] * player * 100;
       }
     }
@@ -70,7 +79,8 @@ class AlphaBeta {
 
     let succs = node.getSucc();
 
-    if (node.turn === player) { // Maximiseur
+    if (node.turn === player) {
+      // Maximiseur
       let bestValue = -Infinity;
       for (const child of succs) {
         let value = this.execAlphaBeta(depth - 1, child, player, alpha, beta);
@@ -82,7 +92,8 @@ class AlphaBeta {
         if (alpha >= beta) break;
       }
       return bestValue;
-    } else { // Minimiseur
+    } else {
+      // Minimiseur
       let bestValue = Infinity;
       for (const child of succs) {
         let value = this.execAlphaBeta(depth - 1, child, player, alpha, beta);
@@ -95,5 +106,19 @@ class AlphaBeta {
       }
       return bestValue;
     }
+  }
+
+  getFlatState() {
+    const state = new Array(18).fill(0);
+
+    for (let i = 0; i < state.length; i++) {
+      if (this.state[i] === AlphaBeta.X) {
+        state[i] = 1;
+      } else if (this.state[i] === AlphaBeta.O) {
+        state[i + 8] = 1;
+      }
+    }
+
+    return state;
   }
 }
