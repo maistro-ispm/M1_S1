@@ -6,7 +6,7 @@ O = -1
 
 
 class Node:
-    def __init__(self, etat, tour=X):
+    def __init__(self, etat=[0] * 9, tour=X):
         self.etat = etat  # 0 = vide, 1 = X, -1 = O
         self.tour = tour  # X commence
         self.best: Optional[Node] = None

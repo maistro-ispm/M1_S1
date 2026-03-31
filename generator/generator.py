@@ -42,14 +42,37 @@ def is_legal(etat: list[int]) -> bool:
     return True
 
 
-def collect_all_states() -> list[list[int]]:
-    """Énumère tous les états légaux du morpion (5 478 au total)."""
-    states = []
-    for combo in itertools.product([-1, 0, 1], repeat=9):
-        state = list(combo)
-        if is_legal(state):
-            states.append(state)
-    return states
+# def collect_all_states() -> list[list[int]]:
+#     """Énumère tous les états légaux du morpion (5 478 au total)."""
+#     states = []
+#     for combo in itertools.product([-1, 0, 1], repeat=9):
+#         state = list(combo)
+#         if is_legal(state):
+#             states.append(state)
+#     return states
+
+
+def collect_all_states() -> list["Node"]:
+    initial = Node()
+    stack = [initial]
+
+    initial_str = "".join(map(str, initial.etat))
+    visited = {initial_str}
+
+    result = [initial]
+
+    while len(stack) > 0:
+        current = stack.pop()
+
+        for child in current.get_succ():
+            child_str = "".join(map(str, child.etat))
+
+            if child_str not in visited:
+                visited.add(child_str)
+                stack.append(child)
+                result.append(child)
+
+    return result
 
 
 def build_features(node: "Node") -> dict:
@@ -103,10 +126,9 @@ def generate_dataset(output_path: str = "tictactoe_dataset.csv"):
 
     print("Calcul des labels alpha-beta…")
     rows = []
-    for i, etat in enumerate(all_states):
+    for i, node in enumerate(all_states):
         if i % 500 == 0:
             print(f"   {i}/{len(all_states)}", end="\r")
-        node = Node(etat, tour=X)
         features = build_features(node)
         rows.append(features)
 
