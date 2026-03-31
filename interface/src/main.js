@@ -1,8 +1,9 @@
 // html elements
-let cells = document.querySelectorAll(".cell")
+let cells = document.querySelectorAll(".ttt-cell")
 const turnDiv = document.querySelector("#turn")
 const messageDiv = document.querySelector("#message")
 const resetBtn = document.querySelector("#reset")
+const winLineEl = document.querySelector("#win-line")
 
 let canPlay = true
 
@@ -72,12 +73,19 @@ function reset() {
 
   cells.forEach(cell => {
     cell.innerHTML = ""
-    cell.classList.remove("X")
-    cell.classList.remove("O")
+    cell.classList.remove("ttt-X")
+    cell.classList.remove("ttt-O")
   })
+
+  if (winLineEl) {
+    winLineEl.className = "win-line"
+    winLineEl.style.display = "none"
+  }
 }
 
 function play(position) {
+  console.log(position);
+  
   if (state[position] != 0) {
     console.log("Can't play this position")
     return
@@ -87,7 +95,7 @@ function play(position) {
 
   const cellElement = document.getElementById(position)
 
-  cellElement.classList.add(getChar())
+  cellElement.classList.add("ttt-"+getChar())
 
   cellElement.innerHTML = getChar()
 
@@ -97,15 +105,25 @@ function play(position) {
     if (evaluation == 0) {
       messageDiv.innerHTML = "Match null"
     } else {
-      messageDiv.innerHTML = getChar(-turn) + ' a gagnée'
+      messageDiv.innerHTML = ' a gagnée'
     }
   }
 
   let evaluation = evalState()
 
   if (evaluation != 0) {
-    messageDiv.innerHTML = getChar(-turn) + ' a gagnée'
+    messageDiv.innerHTML = ' a gagnée'
     canPlay = false
+  }
+
+  // Affiche la ligne gagnante si besoin
+  const winData = checkWinner(state)
+  if (winData && winLineEl) {
+    winLineEl.className = `win-line ${winData.line}`
+    winLineEl.style.display = "block"
+  } else if (winLineEl) {
+    winLineEl.className = "win-line"
+    winLineEl.style.display = "none"
   }
 
   turn = -turn
@@ -115,6 +133,27 @@ function play(position) {
   }
 }
 
+function checkWinner(board) {
+  const lines = [
+    { indices: [0, 1, 2], type: "h-1" },
+    { indices: [3, 4, 5], type: "h-2" },
+    { indices: [6, 7, 8], type: "h-3" },
+    { indices: [0, 3, 6], type: "v-1" },
+    { indices: [1, 4, 7], type: "v-2" },
+    { indices: [2, 5, 8], type: "v-3" },
+    { indices: [0, 4, 8], type: "d-1" },
+    { indices: [2, 4, 6], type: "d-2" },
+  ];
+
+  for (const line of lines) {
+    const [a, b, c] = line.indices;
+    if (board[a] !== 0 && board[a] === board[b] && board[b] === board[c]) {
+      return { winner: board[a], line: line.type };
+    }
+  }
+  return null;
+};
+
 cells.forEach(cell => {
   cell.addEventListener("click", (e) => {
     if (canPlay) {
@@ -123,7 +162,11 @@ cells.forEach(cell => {
   })
 })
 
-
 resetBtn.addEventListener("click", () => {
   reset()
 })
+
+// état initial
+if (winLineEl) {
+  winLineEl.style.display = "none"
+}

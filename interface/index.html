@@ -8,35 +8,34 @@
 </head>
 
 <body>
+  <main class="ttt-page">
+      <section class="ttt-card">
+      <h1 class="ttt-title">Tic Tac Toe</h1>
+      <div class="ttt-status center">
+        <p id="turn"></p>
+        <p id="message"></p>
+      </div>
 
-  <h1>Tic tac toe</h1>
-  <div class="status" id="status">
-    <p>Tour du joueur</p>
-    <p id="turn"></p>
-  </div>
+      <div class="ttt-board">
+        <div class="ttt-grid">
+          <button class="ttt-cell" id="0"></button>
+          <button class="ttt-cell" id="1"></button>
+          <button class="ttt-cell" id="2"></button>
+          <button class="ttt-cell" id="3"></button>
+          <button class="ttt-cell" id="4"></button>
+          <button class="ttt-cell" id="5"></button>
+          <button class="ttt-cell" id="6"></button>
+          <button class="ttt-cell" id="7"></button>
+          <button class="ttt-cell" id="8"></button>
+        </div>
+        <!-- On affiche la ligne seulement s'il y a un gagnant -->
+        <div id="win-line" class="win-line"></div>
+      </div>
 
-  <div id="message"></div>
+      <button class="ttt-reset" id="reset">Recommencer</button>
 
-  <div class="gameContainer">
-    <div class="row">
-      <div class="cell" id="0"></div>
-      <div class="cell" id="1"></div>
-      <div class="cell" id="2"></div>
-    </div>
-    <div class="row">
-      <div class="cell" id="3"></div>
-      <div class="cell" id="4"></div>
-      <div class="cell" id="5"></div>
-    </div>
-    <div class="row">
-      <div class="cell" id="6"></div>
-      <div class="cell" id="7"></div>
-      <div class="cell" id="8"></div>
-    </div>
-  </div>
-
-  <button id="reset">Recommencer</button>
-
+    </section>
+  </main>
   <script src="./src/main.js"></script>
 </body>
 
