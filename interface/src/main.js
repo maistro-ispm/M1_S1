@@ -109,3 +109,10 @@ settingBtn.addEventListener("click", () => {
 resetBtn.addEventListener("click", ()=> {
   reset()
 })
+
+const game = new AlphaBeta()
+
+game.play(0)
+game.play(1)
+
+console.log("AlphaBeta", game.execAlphaBeta(5, game, 1, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY), game.best)
