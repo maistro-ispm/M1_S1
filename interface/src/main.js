@@ -113,11 +113,11 @@ function play(position) {
 
   // Si c'est au tour de l'IA
   if (vsAI && turn === O && canPlay) {
-    setTimeout(aiPlay, 500); // Petit délai pour le réalisme
+    setTimeout(aiPlay, 200); // Petit délai pour le réalisme
   }
   // Tour d'ia hybride
   if (vsHybrid && turn === O && canPlay) {
-    setTimeout(hybridPlay, 500); // Petit délai pour le réalisme
+    setTimeout(hybridPlay, 200); // Petit délai pour le réalisme
   }
 
 }
@@ -164,10 +164,11 @@ startBtn.addEventListener("click", () => {
     document.querySelector('input[name="opponent"]:checked').value === "hybrid";
 
   if (vsAI) {
-    console.log("hi")
     displayLoader()
     initialize();
   }
+
+  console.log("fldakjfds", vsAI, vsHybrid)
 
   reset();
 });

@@ -442,6 +442,7 @@ body {
 
 #loader {
   display: flex;
+  flex-direction: column;
   text-align: center;
   justify-content: center;
   align-items: center;
@@ -456,4 +457,8 @@ body {
   border-radius: 10px;
   z-index: 999;
   display: none;
+}
+
+#loading-detail {
+  color: gray;
 }
