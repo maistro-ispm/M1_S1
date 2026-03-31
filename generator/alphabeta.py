@@ -4,19 +4,29 @@ import math
 X = 1
 O = -1
 
+LINES = [
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),
+    (2, 4, 6),
+]
+
 
 class Node:
-    def __init__(self, etat=[0] * 9, tour=X):
+    def __init__(self, etat=[0] * 9, tour=X):  # X commence
         self.etat = etat  # 0 = vide, 1 = X, -1 = O
-        self.tour = tour  # X commence
+        self.tour = tour
         self.best: Optional[Node] = None
 
     def play(self, position: int):
-        """Joue sur la case 'position' pour le joueur courant."""
         self.etat[position] = self.tour
         self.tour = -self.tour
 
-    def copier(self) -> "Node":
+    def clone(self) -> "Node":
         return Node(self.etat[:], tour=self.tour)
 
     def get_succ(self) -> list["Node"]:
@@ -24,7 +34,7 @@ class Node:
         successeurs = []
         for i in range(9):
             if self.etat[i] == 0:
-                fils = self.copier()
+                fils = self.clone()
                 fils.play(i)
                 successeurs.append(fils)
         return successeurs
@@ -57,7 +67,7 @@ class Node:
     def is_terminal(self) -> bool:
         return self.eval_heuristique(1) != 0 or self.is_full()
 
-    def alphabeta(
+    def minmax(
         self,
         prof: int,
         joueur: int,
@@ -73,7 +83,7 @@ class Node:
         if self.tour == joueur:  # Maximisant
             best_val = -math.inf
             for fils in successeurs:
-                val = fils.alphabeta(prof - 1, joueur, alpha, beta)
+                val = fils.minmax(prof - 1, joueur, alpha, beta)
                 if val > best_val:
                     best_val = val
                     self.best = fils
@@ -84,7 +94,7 @@ class Node:
         else:  # Minimisant
             best_val = math.inf
             for fils in successeurs:
-                val = fils.alphabeta(prof - 1, joueur, alpha, beta)
+                val = fils.minmax(prof - 1, joueur, alpha, beta)
                 if val < best_val:
                     best_val = val
                     self.best = fils
@@ -92,3 +102,25 @@ class Node:
                 if alpha >= beta:
                     break  # Coupure alpha
             return best_val
+
+    def is_legal(self) -> bool:
+        nx = self.etat.count(X)
+        no = self.etat.count(O)
+        if not (nx == no or nx == no + 1):
+            return False
+
+        def winner(p):
+            return any(
+                self.etat[a] == self.etat[b] == self.etat[c] == p for a, b, c in LINES
+            )
+
+        # Les deux joueurs ne peuvent pas avoir gagné simultanément
+        if winner(X) and winner(O):
+            return False
+        # Si O a gagné, #O doit être == #X (X a joué en dernier avant O)
+        if winner(O) and nx != no:
+            return False
+        # Si X a gagné, #X doit être == #O + 1
+        if winner(X) and nx != no + 1:
+            return False
+        return True

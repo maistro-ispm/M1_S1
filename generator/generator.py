@@ -1,45 +1,9 @@
-import csv
+import pandas as pd
 import random
 import math
 import itertools
-from alphabeta import X, O, Node
 
-LINES = [
-    (0, 1, 2),
-    (3, 4, 5),
-    (6, 7, 8),
-    (0, 3, 6),
-    (1, 4, 7),
-    (2, 5, 8),
-    (0, 4, 8),
-    (2, 4, 6),
-]
-
-
-def is_legal(etat: list[int]) -> bool:
-    """
-    Un état est légal si :
-      - le nombre de X et de O est cohérent (|#X - #O| <= 1, X commence)
-      - au plus un vainqueur
-    """
-    nx = etat.count(X)
-    no = etat.count(O)
-    if not (nx == no or nx == no + 1):
-        return False
-
-    def winner(p):
-        return any(etat[a] == etat[b] == etat[c] == p for a, b, c in LINES)
-
-    # Les deux joueurs ne peuvent pas avoir gagné simultanément
-    if winner(X) and winner(O):
-        return False
-    # Si O a gagné, #O doit être == #X (X a joué en dernier avant O)
-    if winner(O) and nx != no:
-        return False
-    # Si X a gagné, #X doit être == #O + 1
-    if winner(X) and nx != no + 1:
-        return False
-    return True
+from alphabeta import X, O, LINES, Node
 
 
 def collect_all_states() -> list["Node"]:
@@ -60,7 +24,7 @@ def collect_all_states() -> list["Node"]:
             if child_str not in visited:
                 visited.add(child_str)
 
-                if is_legal(child.etat):
+                if child.is_legal():
                     stack.append(child)
                     result.append(child)
 
@@ -68,13 +32,7 @@ def collect_all_states() -> list["Node"]:
 
 
 def build_features(node: "Node") -> dict:
-    """
-    Construit un vecteur de features à partir d'un état.
-
-    Features brutes (9) + features dérivées :
-      - x_wins  : X a déjà 3 en ligne
-    """
-    _score = node.alphabeta(prof=9, joueur=node.tour)
+    _score = node.minmax(prof=9, joueur=node.tour)  # score est inutilisé
     best = node.best
 
     f = {f"c{i}_x": 1 if node.etat[i] == 1 else 0 for i in range(9)}
@@ -104,11 +62,11 @@ def build_features(node: "Node") -> dict:
 
 
 def generate_dataset(output_path: str = "tictactoe_dataset.csv"):
-    print("Collecte de tous les états légaux…")
+    print("Collecte de tous les états...")
     all_states = collect_all_states()
     print(f"   → {len(all_states)} états trouvés")
 
-    print("Calcul des labels alpha-beta…")
+    print("Construction des features...")
     rows = []
     for i, node in enumerate(all_states):
         if i % 500 == 0:
@@ -116,16 +74,14 @@ def generate_dataset(output_path: str = "tictactoe_dataset.csv"):
         features = build_features(node)
         rows.append(features)
 
+    df = pd.DataFrame(rows)
+
     # Mélanger avant de sauvegarder
-    random.shuffle(rows)
+    df = df.sample(frac=1).reset_index(drop=True)
 
     print(f"\n Sauvegarde dans '{output_path}'…")
-    fieldnames = list(rows[0].keys())
-    with open(output_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-    return output_path
+
+    df.to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":
