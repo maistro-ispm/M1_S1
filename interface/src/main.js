@@ -68,15 +68,14 @@ function play(position) {
 }
 
 function aiPlay() {
-  // IA très simple : joue au hasard dans les cases vides
-  const alphabeta = new AlphaBeta()
+  const alphabeta = new AlphaBeta([...state]);
+  alphabeta.turn = turn; // Initialiser avec le bon tour (O = -1)
 
-  const bestMove = alphabeta.execAlphaBeta(5, state, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  alphabeta.execAlphaBeta(9, alphabeta, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
 
-  console.log("bestMove", bestMove)
-
-  play(bestMove)
-
+  const bestMove = alphabeta.best.lastMove; // Récupérer le coup, pas le score
+  console.log("Meilleur coup IA :", bestMove);
+  play(bestMove);
 }
 
 // --- Événements ---
@@ -113,9 +112,3 @@ resetBtn.addEventListener("click", ()=> {
   reset()
 })
 
-const game = new AlphaBeta()
-
-game.play(0)
-game.play(1)
-
-console.log("AlphaBeta", game.execAlphaBeta(5, game, 1, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY), game.best)

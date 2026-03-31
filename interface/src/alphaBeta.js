@@ -1,10 +1,14 @@
 class AlphaBeta {
-  state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  state;
   static X = 1;
   static O = -1;
 
   best = null;
   turn = AlphaBeta.X;
+
+  constructor (state) {
+    this.state = state
+  }
 
   getChar() {
     return this.turn === AlphaBeta.X ? "X" : "O";
@@ -23,7 +27,7 @@ class AlphaBeta {
     ];
     for (let [a, b, c] of lines) {
       if (this.state[a] !== 0 && this.state[a] === this.state[b] && this.state[a] === this.state[c]) {
-        return this.state[a] * 100;
+        return this.state[a] * player * 100;
       }
     }
     return 0;
@@ -31,14 +35,13 @@ class AlphaBeta {
 
   play(position) {
     if (this.state[position] !== 0) return false;
-    this.state[position] = this.turn;
+    this.state[position] = this.turn; // Assigner AVANT d'inverser le tour
     this.turn = -this.turn;
     return true;
   }
 
   copy() {
-    let out = new AlphaBeta();
-    out.state = [...this.state];
+    let out = new AlphaBeta([...this.state]);
     out.turn = this.turn;
     return out;
   }
@@ -53,6 +56,7 @@ class AlphaBeta {
         succs.push(child);
       }
     }
+    console.log(succs.map(s=> s.state))
     return succs;
   }
 
@@ -62,7 +66,7 @@ class AlphaBeta {
 
   execAlphaBeta(depth, node, player, alpha, beta) {
     if (depth === 0 || node.isTerminal(player)) {
-      return node.evalState();
+      return node.evalState(player); // Passer player pour éviter NaN
     }
 
     let succs = node.getSucc();
