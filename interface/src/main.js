@@ -1,3 +1,5 @@
+let pyodide;
+
 // --- Sélecteurs DOM ---
 const cells = document.querySelectorAll(".ttt-cell"); // Corrigé pour correspondre au HTML
 const turnDiv = document.querySelector("#turn");
@@ -56,7 +58,7 @@ function reset() {
   messageDiv.innerHTML = "";
   turnDiv.innerHTML = getChar();
 
-  cells.forEach(cell => {
+  cells.forEach((cell) => {
     cell.innerHTML = "";
     cell.classList.remove("ttt-X", "ttt-O");
   });
@@ -114,19 +116,26 @@ function aiPlay() {
   const alphabeta = new AlphaBeta([...state]);
   alphabeta.turn = turn; // Initialiser avec le bon tour (O = -1)
 
-  alphabeta.execAlphaBeta(9, alphabeta, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
+  alphabeta.execAlphaBeta(
+    9,
+    alphabeta,
+    turn,
+    Number.NEGATIVE_INFINITY,
+    Number.POSITIVE_INFINITY,
+  );
 
   const bestMove = alphabeta.best.lastMove; // Récupérer le coup, pas le score
   play(bestMove);
 }
 
 // --- Événements ---
-cells.forEach(cell => {
+cells.forEach((cell) => {
   cell.addEventListener("click", (e) => play(parseInt(e.target.id)));
 });
 
 startBtn.addEventListener("click", () => {
-  vsAI = document.querySelector('input[name="opponent"]:checked').value === "ai";
+  vsAI =
+    document.querySelector('input[name="opponent"]:checked').value === "ai";
   menu.style.display = "none";
   reset();
 });
@@ -144,3 +153,49 @@ resetBtn.addEventListener("click", () => {
 if (winLineEl) {
   winLineEl.style.display = "none";
 }
+
+async function initialize() {
+  pyodide = await loadPyodide();
+
+  const xWinModel = await fetch("./src/x_wins_model.joblib");
+  const drawModel = await fetch("./src/draw_model.joblib");
+  const xWinModelBuffer = await xWinModel.arrayBuffer();
+  const drawModelBuffer = await drawModel.arrayBuffer();
+
+  pyodide.FS.writeFile("x_wins_model.joblib", new Uint8Array(xWinModelBuffer));
+  pyodide.FS.writeFile("draw_model.joblib", new Uint8Array(drawModelBuffer));
+
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install("scikit-learn");
+  await micropip.install("joblib");
+  await micropip.install("numpy");
+
+  await pyodide.runPythonAsync(`
+      import joblib
+      import numpy as np
+
+      x_wins_model = joblib.load("x_wins_model.joblib")
+      draw_model = joblib.load("draw_model.joblib")
+
+      def predict_x_win(input):
+        input = np.array(input).reshape(1, -1)
+        prediction = x_wins_model.predict(input)
+        return prediction.tolist()
+
+      def predict_draw(input):
+        input = np.array(input).reshape(1, -1)
+        prediction = draw_model.predict(input)
+        return prediction.tolist()
+  `);
+}
+
+function predictXWin(input) {
+  pyodide.globals.get("predict_x_win")(input);
+}
+
+function predictDraw(input) {
+  pyodide.globals.get("predict_draw")(input);
+}
+
+initialize();

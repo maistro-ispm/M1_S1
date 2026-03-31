@@ -1,58 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Tic Tac Toe</title>
-  <link rel="stylesheet" href="./src/style.css">
-</head>
-
-<body>
-  <main class="ttt-page">
-    <section class="ttt-card">
-      <h1 class="ttt-title">Tic Tac Toe</h1>
-      <div class="ttt-status center">
-        <p id="turn"></p>
-        <p id="message"></p>
-      </div>
-
-      <div class="ttt-board">
-        <div class="ttt-grid">
-          <button class="ttt-cell" id="0"></button>
-          <button class="ttt-cell" id="1"></button>
-          <button class="ttt-cell" id="2"></button>
-          <button class="ttt-cell" id="3"></button>
-          <button class="ttt-cell" id="4"></button>
-          <button class="ttt-cell" id="5"></button>
-          <button class="ttt-cell" id="6"></button>
-          <button class="ttt-cell" id="7"></button>
-          <button class="ttt-cell" id="8"></button>
+  <body>
+    <main class="ttt-page">
+      <section class="ttt-card">
+        <h1 class="ttt-title">Tic Tac Toe</h1>
+        <div class="ttt-status center">
+          <p id="turn"></p>
+          <p id="message"></p>
         </div>
-        <!-- On affiche la ligne seulement s'il y a un gagnant -->
-        <div id="win-line" class="win-line"></div>
-      </div>
-      <button class="ttt-reset" id="reset">Recommencer</button>
-      <button id="settings">Parametres</button>
 
-      <div class="menu">
-        <h2>Jouer contre</h2>
-        <div class="playAgainst">
-          <div>
-            <input type="radio" name="opponent" id="human" value="human" checked>
-            <label for="human">Homme</label>
+        <div class="ttt-board">
+          <div class="ttt-grid">
+            <button class="ttt-cell" id="0"></button>
+            <button class="ttt-cell" id="1"></button>
+            <button class="ttt-cell" id="2"></button>
+            <button class="ttt-cell" id="3"></button>
+            <button class="ttt-cell" id="4"></button>
+            <button class="ttt-cell" id="5"></button>
+            <button class="ttt-cell" id="6"></button>
+            <button class="ttt-cell" id="7"></button>
+            <button class="ttt-cell" id="8"></button>
           </div>
-          <div>
-            <input type="radio" name="opponent" id="ai" value="ai">
-            <label for="ai">IA</label>
-          </div>
+          <!-- On affiche la ligne seulement s'il y a un gagnant -->
+          <div id="win-line" class="win-line"></div>
         </div>
-        <button class="button" id="startGame">Commencer</button>
-      </div>
+        <button class="ttt-reset" id="reset">Recommencer</button>
+        <button id="settings">Parametres</button>
 
-    </section>
-  </main>
-  <script src="./src/alphaBeta.js"></script>
-  <script src="./src/main.js"></script>
-</body>
-
+        <div class="menu">
+          <h2>Jouer contre</h2>
+          <div class="playAgainst">
+            <div>
+              <input
+                type="radio"
+                name="opponent"
+                id="human"
+                value="human"
+                checked
+              />
+              <label for="human">Homme</label>
+            </div>
+            <div>
+              <input type="radio" name="opponent" id="ai" value="ai" />
+              <label for="ai">IA</label>
+            </div>
+          </div>
+          <button class="button" id="startGame">Commencer</button>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script src="./src/alphaBeta.js"></script>
+    <script src="./src/main.js"></script>
+  </body>
 </html>
