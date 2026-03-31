@@ -1,129 +1,111 @@
-// html elements
-let cells = document.querySelectorAll(".cell")
-const turnDiv = document.querySelector("#turn")
-const messageDiv = document.querySelector("#message")
-const resetBtn = document.querySelector("#reset")
+const cells = document.querySelectorAll(".cell");
+const turnDiv = document.querySelector("#turn");
+const messageDiv = document.querySelector("#message");
+const resetBtn = document.querySelector("#reset");
+const startBtn = document.querySelector("#startGame");
+const menu = document.querySelector(".menu");
+const settingBtn = document.querySelector("#settings")
 
-let canPlay = true
+const X = 1;
+const O = -1;
+let state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+let turn = X;
+let canPlay = false; // Bloqué tant qu'on n'a pas cliqué sur "Commencer"
+let vsAI = false;
 
-function getChar() {
-  return turn === X ? "X" : "O"
+function getChar(p = turn) {
+  return p === X ? "X" : "O";
 }
 
-let state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-const X = 1
-const O = -1
-let turn = X
-turnDiv.innerHTML = getChar(turn)
-
-
-function evalState(player) {
-
-  // Horizontal
-  if (state[0] == state[1] && state[1] == state[2] && state[0] != 0) {
-    return state[0] * player * 100;
+function evalState() {
+  const lines = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontales
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Verticales
+    [0, 4, 8], [2, 4, 6]             // Diagonales
+  ];
+  for (let line of lines) {
+    const [a, b, c] = line;
+    if (state[a] !== 0 && state[a] === state[b] && state[a] === state[c]) {
+      return state[a];
+    }
   }
-
-  if (state[3] == state[4] && state[4] == state[5] && state[3] != 0) {
-    return state[3] * player * 100;
-  }
-
-  if (state[6] == state[7] && state[7] == state[8] && state[6] != 0)
-    return state[6] * player * 100;
-
-
-  // Vertical
-  if (state[0] == state[3] && state[3] == state[6] && state[0] != 0)
-    return state[0] * player * 100;
-
-  if (state[1] == state[4] && state[4] == state[7] && state[1] != 0)
-    return state[0] * player * 100;
-
-  if (state[2] == state[5] && state[5] == state[8] && state[2] != 0)
-    return state[0] * player * 100;
-
-  // Diagonal
-  if (state[0] == state[4] && state[4] == state[8] && state[0] != 0)
-    return state[0] * player * 100;
-  if (state[2] == state[4] && state[4] == state[6] && state[2] != 0)
-    return state[2] * player * 100;
-
   return 0;
 }
 
 function isFull() {
-  for (let i = 0; i < state.length; i++) {
-    if (state[i] == 0) {
-      return false
-    }
-  }
-  return true
-}
-
-function isTerminal(player) {
-  return isFull() || evalState(player) != 0
-}
-
-function reset() {
-  canPlay = true
-  messageDiv.innerHTML = ""
-
-  state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-  cells.forEach(cell => {
-    cell.innerHTML = ""
-    cell.classList.remove("X")
-    cell.classList.remove("O")
-  })
+  return !state.includes(0);
 }
 
 function play(position) {
-  if (state[position] != 0) {
-    console.log("Can't play this position")
-    return
+  if (state[position] !== 0 || !canPlay) return;
+
+  state[position] = turn;
+  const cellElement = document.getElementById(position);
+  cellElement.classList.add(getChar());
+  cellElement.innerText = getChar();
+
+  const winner = evalState();
+  if (winner !== 0) {
+    messageDiv.innerText = `${getChar()} a gagné !`;
+    canPlay = false;
+    return;
   }
-
-  state[position] = turn
-
-  const cellElement = document.getElementById(position)
-
-  cellElement.classList.add(getChar())
-
-  cellElement.innerHTML = getChar()
 
   if (isFull()) {
-    let evaluation = evalState()
-
-    if (evaluation == 0) {
-      messageDiv.innerHTML = "Match null"
-    } else {
-      messageDiv.innerHTML = getChar(-turn) + ' a gagnée'
-    }
+    messageDiv.innerText = "Match nul !";
+    canPlay = false;
+    return;
   }
 
-  let evaluation = evalState()
+  // Changer de tour
+  turn = -turn;
+  turnDiv.innerText = getChar();
 
-  if (evaluation != 0) {
-    messageDiv.innerHTML = getChar(-turn) + ' a gagnée'
-    canPlay = false
-  }
-
-  turn = -turn
-
-  if (canPlay) {
-    turnDiv.innerHTML = getChar(turn)
+  // Si c'est au tour de l'IA
+  if (vsAI && turn === O && canPlay) {
+    setTimeout(aiPlay, 500); // Petit délai pour le réalisme
   }
 }
 
+function aiPlay() {
+  // IA très simple : joue au hasard dans les cases vides
+  const emptyCells = state.map((s, i) => s === 0 ? i : null).filter(i => i !== null);
+  if (emptyCells.length > 0) {
+    const randomPos = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    play(randomPos);
+  }
+}
+
+// --- Événements ---
+
 cells.forEach(cell => {
-  cell.addEventListener("click", (e) => {
-    if (canPlay) {
-      play(e.currentTarget.id)
-    }
-  })
-})
+  cell.addEventListener("click", (e) => play(parseInt(e.target.id)));
+});
 
+startBtn.addEventListener("click", () => {
+  vsAI = document.querySelector('input[name="opponent"]:checked').value === "ai";
+  menu.style.display = "none";
+  canPlay = true;
+  reset();
+});
 
-resetBtn.addEventListener("click", () => {
+function reset() {
+  state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  turn = X;
+  canPlay = true;
+  messageDiv.innerText = "";
+  turnDiv.innerText = getChar();
+  cells.forEach(c => {
+    c.innerText = "";
+    c.classList.remove("X", "O");
+  });
+}
+
+settingBtn.addEventListener("click", () => {
+  menu.style.display = "block";
+  canPlay = false;
+});
+
+resetBtn.addEventListener("click", ()=> {
   reset()
 })

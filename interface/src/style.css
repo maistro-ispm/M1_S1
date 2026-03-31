@@ -61,7 +61,7 @@ button {
   display: flex;
 }
 
-#reset {
+.button  {
   background: #FFF;
   border: 0;
   border-radius: 6px;
@@ -69,6 +69,46 @@ button {
   color: #0B132B;
 }
 
-#reset:hover {
+.button:hover {
   background: #E0E0F0;
+}
+
+.menu {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #0B132B;
+  padding:30px;
+  border-radius: 6px;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+.playAgainst {
+  display: flex;
+  justify-content: space-around;
+}
+
+.playAgainst > div {
+  display: flex;
+  gap: 3px;
+}
+
+.cell {
+    transition: background 0.3s;
+}
+
+.menu {
+    z-index: 10;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border: 1px solid #333;
+}
+
+#message {
+    height: 30px;
+    margin: 10px;
+    font-size: 1.5rem;
+    color: #00D4FF;
 }
