@@ -52,7 +52,7 @@ function reset() {
   state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
   turn = X;
   canPlay = true;
-  
+
   messageDiv.innerHTML = "";
   turnDiv.innerHTML = getChar();
 
@@ -72,7 +72,7 @@ function play(position) {
 
   // Mise à jour de l'état
   state[position] = turn;
-  
+
   // Mise à jour de l'UI
   const cellElement = document.getElementById(position);
   cellElement.classList.add("ttt-" + getChar());
@@ -80,11 +80,11 @@ function play(position) {
 
   // Vérification de victoire
   const winData = checkWinner(state);
-  
+
   if (winData) {
     messageDiv.innerHTML = `${getChar()} a gagné !`;
     canPlay = false;
-    
+
     // Affiche la ligne gagnante
     if (winLineEl) {
       winLineEl.className = `win-line ${winData.line}`;
@@ -111,12 +111,14 @@ function play(position) {
 }
 
 function aiPlay() {
-  // IA très simple : joue au hasard dans les cases vides
-  const emptyCells = state.map((s, i) => s === 0 ? i : null).filter(i => i !== null);
-  if (emptyCells.length > 0) {
-    const randomPos = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    play(randomPos);
-  }
+  const alphabeta = new AlphaBeta([...state]);
+  alphabeta.turn = turn; // Initialiser avec le bon tour (O = -1)
+
+  alphabeta.execAlphaBeta(9, alphabeta, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
+
+  const bestMove = alphabeta.best.lastMove; // Récupérer le coup, pas le score
+  console.log("Meilleur coup IA :", bestMove);
+  play(bestMove);
 }
 
 // --- Événements ---
