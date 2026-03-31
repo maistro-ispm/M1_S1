@@ -9,6 +9,8 @@ const winLineEl = document.querySelector("#win-line");
 const startBtn = document.querySelector("#startGame");
 const menu = document.querySelector(".menu");
 const settingBtn = document.querySelector("#settings");
+const loadingDetailElement = document.querySelector("#loading-detail")
+const loadingElement = document.querySelector("#loader")
 
 // --- Variables d'état ---
 const X = 1;
@@ -17,6 +19,9 @@ let state = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 let turn = X;
 let canPlay = false; // Bloqué tant qu'on n'a pas cliqué sur "Commencer"
 let vsAI = false;
+let vsHybrid = false;
+let loading = true
+
 
 // --- Fonctions utilitaires ---
 function getChar(p = turn) {
@@ -110,9 +115,14 @@ function play(position) {
   if (vsAI && turn === O && canPlay) {
     setTimeout(aiPlay, 500); // Petit délai pour le réalisme
   }
+  // Tour d'ia hybride
+  if (vsHybrid && turn === O && canPlay) {
+    setTimeout(hybridPlay, 500); // Petit délai pour le réalisme
+  }
+
 }
 
-function aiPlay() {
+function hybridPlay() {
   const alphabeta = new AlphaBeta([...state]);
   alphabeta.turn = turn; // Initialiser avec le bon tour (O = -1)
 
@@ -128,6 +138,18 @@ function aiPlay() {
   play(bestMove);
 }
 
+function aiPlay() {
+  initialize();
+}
+
+function displayLoader() {
+  loadingElement.style.display = "flex";
+}
+
+function hideLoader() {
+  loadingElement.style.display = "none";
+}
+
 // --- Événements ---
 cells.forEach((cell) => {
   cell.addEventListener("click", (e) => play(parseInt(e.target.id)));
@@ -137,6 +159,16 @@ startBtn.addEventListener("click", () => {
   vsAI =
     document.querySelector('input[name="opponent"]:checked').value === "ai";
   menu.style.display = "none";
+
+  vsHybrid =
+    document.querySelector('input[name="opponent"]:checked').value === "hybrid";
+
+  if (vsAI) {
+    console.log("hi")
+    displayLoader()
+    initialize();
+  }
+
   reset();
 });
 
@@ -157,20 +189,41 @@ if (winLineEl) {
 async function initialize() {
   pyodide = await loadPyodide();
 
+  loadingDetailElement.innerHTML = "1/12. Telechargement du model x_wins_model.joblib"
+
   const xWinModel = await fetch("./src/x_wins_model.joblib");
+
+  loadingDetailElement.innerHTML = "2/12. Telechargement du model x_draw_model.joblib"
   const drawModel = await fetch("./src/draw_model.joblib");
+
+  loadingDetailElement.innerHTML = "3/12. Telechargement du model x_wins_model.joblib"
   const xWinModelBuffer = await xWinModel.arrayBuffer();
+
+  loadingDetailElement.innerHTML = "4/12. Chargement du model x_draw_model.joblib"
   const drawModelBuffer = await drawModel.arrayBuffer();
 
+  loadingDetailElement.innerHTML = "5/12. Chargement du model x_draw_model.joblib"
   pyodide.FS.writeFile("x_wins_model.joblib", new Uint8Array(xWinModelBuffer));
+
+  loadingDetailElement.innerHTML = "6/12. Chargement du model x_draw_model.joblib"
   pyodide.FS.writeFile("draw_model.joblib", new Uint8Array(drawModelBuffer));
 
+  loadingDetailElement.innerHTML = "7/12. Chargement du package micropip"
   await pyodide.loadPackage("micropip");
+
+  loadingDetailElement.innerHTML = "8/12. Installation du package micropip"
   const micropip = pyodide.pyimport("micropip");
+
+  loadingDetailElement.innerHTML = "9/12. Installation du package scikit-learn"
   await micropip.install("scikit-learn");
+
+  loadingDetailElement.innerHTML = "10/12. Installation du package joblib"
   await micropip.install("joblib");
+
+  loadingDetailElement.innerHTML = "11/12. Installation du package numpy"
   await micropip.install("numpy");
 
+  loadingDetailElement.innerHTML = "12/12. Preparation du model"
   await pyodide.runPythonAsync(`
       import joblib
       import numpy as np
@@ -188,6 +241,8 @@ async function initialize() {
         prediction = draw_model.predict(input)
         return prediction.tolist()
   `);
+
+  hideLoader()
 }
 
 function predictXWin(input) {
@@ -198,4 +253,3 @@ function predictDraw(input) {
   pyodide.globals.get("predict_draw")(input);
 }
 
-initialize();
