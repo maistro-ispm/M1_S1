@@ -74,7 +74,7 @@ def build_features(node: "Node") -> dict:
     Features brutes (9) + features dérivées :
       - x_wins  : X a déjà 3 en ligne
     """
-    node.alphabeta(9, X)
+    _score = node.alphabeta(prof=9, joueur=node.tour)
     best = node.best
 
     f = {f"c{i}_x": 1 if node.etat[i] == 1 else 0 for i in range(9)}
@@ -86,27 +86,19 @@ def build_features(node: "Node") -> dict:
 
         return f
 
-    x_wins = o_wins = 0
-    x_two = o_two = x_one = o_one = 0
+    x_wins = 0
+    o_wins = 0
 
     for a, b, c in LINES:
         line = [best.etat[a], best.etat[b], best.etat[c]]
         sx, so = line.count(X), line.count(O)
         if sx == 3:
-            x_wins += 1
+            x_wins = 1
         if so == 3:
-            o_wins += 1
-        if sx == 2 and so == 0:
-            x_two += 1
-        if so == 2 and sx == 0:
-            o_two += 1
-        if sx == 1 and so == 0:
-            x_one += 1
-        if so == 1 and sx == 0:
-            o_one += 1
+            o_wins = 1
 
     f["x_wins"] = x_wins
-    f["is_draw"] = 1 if (x_wins == 0 and o_wins == 0 and sum(best.etat) == 0) else 0
+    f["is_draw"] = 1 if (x_wins == 0 and o_wins == 0) else 0
 
     return f
 
