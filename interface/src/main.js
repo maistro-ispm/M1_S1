@@ -69,11 +69,14 @@ function play(position) {
 
 function aiPlay() {
   // IA très simple : joue au hasard dans les cases vides
-  const emptyCells = state.map((s, i) => s === 0 ? i : null).filter(i => i !== null);
-  if (emptyCells.length > 0) {
-    const randomPos = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-    play(randomPos);
-  }
+  const alphabeta = new AlphaBeta()
+
+  const bestMove = alphabeta.execAlphaBeta(5, state, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
+  console.log("bestMove", bestMove)
+
+  play(bestMove)
+
 }
 
 // --- Événements ---

@@ -15,7 +15,7 @@ class AlphaBeta {
   }
 
   // Évaluation : 100 si X gagne, -100 si O gagne
-  evalState() {
+  evalState(player) {
     const lines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8],
       [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -56,12 +56,12 @@ class AlphaBeta {
     return succs;
   }
 
-  isTerminal() {
-    return this.evalState() !== 0 || this.isFull();
+  isTerminal(player) {
+    return this.evalState(player) !== 0 || this.isFull();
   }
 
   execAlphaBeta(depth, node, player, alpha, beta) {
-    if (depth === 0 || node.isTerminal()) {
+    if (depth === 0 || node.isTerminal(player)) {
       return node.evalState();
     }
 
