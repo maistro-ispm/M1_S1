@@ -238,7 +238,7 @@ async function initialize() {
 
   loadingDetailElement.innerHTML =
     "6/12. Chargement du model x_draw_model.joblib";
-  pyodide.FS.writeFile("draw_model.joblib", new Uint8Array(drawModelBuffer));
+  pyodide.FS.writeFile("is_draw_model.joblib", new Uint8Array(drawModelBuffer));
 
   loadingDetailElement.innerHTML = "7/12. Chargement du package micropip";
   await pyodide.loadPackage("micropip");
