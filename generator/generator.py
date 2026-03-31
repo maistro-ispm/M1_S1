@@ -2,11 +2,19 @@ import csv
 import random
 import math
 import itertools
-from alphabeta import X, O
+from alphabeta import X, O, Node
 
-LINES = [(0,1,2),(3,4,5),(6,7,8),
-         (0,3,6),(1,4,7),(2,5,8),
-         (0,4,8),(2,4,6)]
+LINES = [
+    (0, 1, 2),
+    (3, 4, 5),
+    (6, 7, 8),
+    (0, 3, 6),
+    (1, 4, 7),
+    (2, 5, 8),
+    (0, 4, 8),
+    (2, 4, 6),
+]
+
 
 def is_legal(etat: list[int]) -> bool:
     """
@@ -20,7 +28,7 @@ def is_legal(etat: list[int]) -> bool:
         return False
 
     def winner(p):
-        return any(etat[a]==etat[b]==etat[c]==p for a,b,c in LINES)
+        return any(etat[a] == etat[b] == etat[c] == p for a, b, c in LINES)
 
     # Les deux joueurs ne peuvent pas avoir gagné simultanément
     if winner(X) and winner(O):
@@ -43,33 +51,50 @@ def collect_all_states() -> list[list[int]]:
             states.append(state)
     return states
 
-def build_features(etat: list[int]) -> dict:
+
+def build_features(node: "Node") -> dict:
     """
     Construit un vecteur de features à partir d'un état.
 
     Features brutes (9) + features dérivées :
       - x_wins  : X a déjà 3 en ligne
     """
-    f = {f"c{i}_x": 1 if etat[i] == 1 else 0 for i in range(9)}
-    f.update({f"c{i}_o": 1 if etat[i] == -1 else 0 for i in range(9)})
+    node.alphabeta(9, X)
+    best = node.best
+
+    f = {f"c{i}_x": 1 if node.etat[i] == 1 else 0 for i in range(9)}
+    f.update({f"c{i}_o": 1 if node.etat[i] == -1 else 0 for i in range(9)})
+
+    if best is None:
+        f["x_wins"] = 0
+        f["is_draw"] = 1
+
+        return f
 
     x_wins = o_wins = 0
     x_two = o_two = x_one = o_one = 0
 
     for a, b, c in LINES:
-        line = [etat[a], etat[b], etat[c]]
+        line = [best.etat[a], best.etat[b], best.etat[c]]
         sx, so = line.count(X), line.count(O)
-        if sx == 3: x_wins += 1
-        if so == 3: o_wins += 1
-        if sx == 2 and so == 0: x_two += 1
-        if so == 2 and sx == 0: o_two += 1
-        if sx == 1 and so == 0: x_one += 1
-        if so == 1 and sx == 0: o_one += 1
+        if sx == 3:
+            x_wins += 1
+        if so == 3:
+            o_wins += 1
+        if sx == 2 and so == 0:
+            x_two += 1
+        if so == 2 and sx == 0:
+            o_two += 1
+        if sx == 1 and so == 0:
+            x_one += 1
+        if so == 1 and sx == 0:
+            o_one += 1
 
-    f["x_wins"]  = x_wins
-    f["is_draw"] = 1 if (x_wins == 0 and o_wins == 0 and sum(etat) == 0) else 0
+    f["x_wins"] = x_wins
+    f["is_draw"] = 1 if (x_wins == 0 and o_wins == 0 and sum(best.etat) == 0) else 0
 
     return f
+
 
 def generate_dataset(output_path: str = "tictactoe_dataset.csv"):
     print("Collecte de tous les états légaux…")
@@ -77,11 +102,12 @@ def generate_dataset(output_path: str = "tictactoe_dataset.csv"):
     print(f"   → {len(all_states)} états trouvés")
 
     print("Calcul des labels alpha-beta…")
-    rows = [] 
+    rows = []
     for i, etat in enumerate(all_states):
         if i % 500 == 0:
             print(f"   {i}/{len(all_states)}", end="\r")
-        features = build_features(etat)
+        node = Node(etat, tour=X)
+        features = build_features(node)
         rows.append(features)
 
     # Mélanger avant de sauvegarder

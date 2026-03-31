@@ -4,24 +4,22 @@ import math
 X = 1
 O = -1
 
-class Noeud:
-    def __init__(self):
-        self.etat = [0] * 9   # 0 = vide, 1 = X, -1 = O
-        self.tour = X          # X commence
-        self.best: Optional['Noeud'] = None
+
+class Node:
+    def __init__(self, etat, tour=X):
+        self.etat = etat  # 0 = vide, 1 = X, -1 = O
+        self.tour = tour  # X commence
+        self.best: Optional[Node] = None
 
     def play(self, position: int):
         """Joue sur la case 'position' pour le joueur courant."""
         self.etat[position] = self.tour
         self.tour = -self.tour
 
-    def copier(self) -> 'Noeud':
-        copie = Noeud()
-        copie.etat = self.etat[:]
-        copie.tour = self.tour
-        return copie
+    def copier(self) -> "Node":
+        return Node(self.etat[:], tour=self.tour)
 
-    def get_succ(self) -> list['Noeud']:
+    def get_succ(self) -> list["Node"]:
         """Retourne tous les successeurs possibles."""
         successeurs = []
         for i in range(9):
@@ -37,11 +35,16 @@ class Noeud:
         """
         lignes = [
             # Horizontales
-            (0, 1, 2), (3, 4, 5), (6, 7, 8),
+            (0, 1, 2),
+            (3, 4, 5),
+            (6, 7, 8),
             # Verticales
-            (0, 3, 6), (1, 4, 7), (2, 5, 8),
+            (0, 3, 6),
+            (1, 4, 7),
+            (2, 5, 8),
             # Diagonales
-            (0, 4, 8), (2, 4, 6),
+            (0, 4, 8),
+            (2, 4, 6),
         ]
         for a, b, c in lignes:
             if self.etat[a] == self.etat[b] == self.etat[c] != 0:
@@ -54,34 +57,38 @@ class Noeud:
     def is_terminal(self) -> bool:
         return self.eval_heuristique(1) != 0 or self.is_full()
 
-    @staticmethod
-    def alphabeta(nd: 'Noeud', prof: int, joueur: int,
-                  alpha: int = -math.inf, beta: int = math.inf) -> int:
-        if prof == 0 or nd.is_terminal():
-            return nd.eval_heuristique(joueur)
+    def alphabeta(
+        self,
+        prof: int,
+        joueur: int,
+        alpha: int = -math.inf,
+        beta: int = math.inf,
+    ) -> int:
+        if prof == 0 or self.is_terminal():
+            return self.eval_heuristique(joueur)
 
-        successeurs = nd.get_succ()
-        nd.best = None
+        successeurs = self.get_succ()
+        self.best = None
 
-        if nd.tour == joueur:   # Maximisant
+        if self.tour == joueur:  # Maximisant
             best_val = -math.inf
             for fils in successeurs:
-                val = Noeud.alphabeta(fils, prof - 1, joueur, alpha, beta)
+                val = fils.alphabeta(prof - 1, joueur, alpha, beta)
                 if val > best_val:
                     best_val = val
-                    nd.best = fils
+                    self.best = fils
                 alpha = max(alpha, best_val)
                 if alpha >= beta:
-                    break   # Coupure beta
+                    break  # Coupure beta
             return best_val
-        else:                   # Minimisant
+        else:  # Minimisant
             best_val = math.inf
             for fils in successeurs:
-                val = Noeud.alphabeta(fils, prof - 1, joueur, alpha, beta)
+                val = fils.alphabeta(prof - 1, joueur, alpha, beta)
                 if val < best_val:
                     best_val = val
-                    nd.best = fils
+                    self.best = fils
                 beta = min(beta, best_val)
                 if alpha >= beta:
-                    break   # Coupure alpha
+                    break  # Coupure alpha
             return best_val
