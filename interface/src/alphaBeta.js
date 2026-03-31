@@ -56,7 +56,6 @@ class AlphaBeta {
         succs.push(child);
       }
     }
-    console.log(succs.map(s=> s.state))
     return succs;
   }
 

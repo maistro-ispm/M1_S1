@@ -117,7 +117,6 @@ function aiPlay() {
   alphabeta.execAlphaBeta(9, alphabeta, turn, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY);
 
   const bestMove = alphabeta.best.lastMove; // Récupérer le coup, pas le score
-  console.log("Meilleur coup IA :", bestMove);
   play(bestMove);
 }
 
